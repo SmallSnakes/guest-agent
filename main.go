@@ -93,7 +93,7 @@ func main() {
 	router.POST("/power", execOrder)
 	router.GET("/CPUInfo", getCPUInfo)
 	router.GET("/MemoryInfo", getMemoryInfo)
-	router.GET("/getDiskInfo", getDiskInfo)
+	router.GET("/DiskInfo", getDiskInfo)
 	//router.GET("/getNetInfo", getNetInfo)
 	//router.GET("/getLLDPInfo", getLLDPInfo)
 
