@@ -17,7 +17,7 @@ func GetMemory() (interface{}, error) {
 	}
 
 	memInfo := map[string]interface{}{}
-	memInfo["tatal"] = info.Total
+	memInfo["total"] = info.Total
 
 	cmd := exec.Command("sh", "-c", "dmidecode --type 17 | grep Size")
 	data, err := cmd.CombinedOutput()

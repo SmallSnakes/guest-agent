@@ -16,26 +16,15 @@ func GetMemory() (interface{}, error) {
 	}
 
 	memInfo := map[string]interface{}{}
-	memInfo["tatal"] = info.Total
+	memInfo["total"] = info.Total
 	var mod = syscall.NewLazyDLL("kernel32.dll")
 	var proc = mod.NewProc("GetPhysicallyInstalledSystemMemory")
 	var memory uint64
-	proc.Call(uintptr(unsafe.Pointer(&memory)))
+	_, _, err = proc.Call(uintptr(unsafe.Pointer(&memory)))
+	if err != nil {
+		return nil, err
+	}
 	memInfo["physical_mb"] = memory / 1024
 
 	return memInfo, err
 }
-
-// func GetMemoryWinInfo(c *gin.Context) {
-// 	var info interface{}
-// 	var err interface{}
-
-// 	info, err = GetMemoryWin()
-// 	if err != nil {
-// 		log.Println("get cpu info error ", err)
-// 	}
-
-// 	c.JSON(200, gin.H{
-// 		"memory": info,
-// 	})
-// }

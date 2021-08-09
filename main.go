@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"troila-guest-agent/utils"
 
@@ -83,10 +84,8 @@ func getLLDPInfo(c *gin.Context) {
 
 }
 
-
-
 func main() {
-
+	fmt.Println(utils.GetDiskDrivers())
 	router := gin.Default()
 
 	router.GET("/ping", ping)
@@ -96,7 +95,6 @@ func main() {
 	router.GET("/DiskInfo", getDiskInfo)
 	//router.GET("/getNetInfo", getNetInfo)
 	//router.GET("/getLLDPInfo", getLLDPInfo)
-
 
 	router.Run(":1234")
 }
