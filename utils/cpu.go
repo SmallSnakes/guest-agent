@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+	"github.com/jaypipes/ghw"
 	"github.com/shirou/gopsutil/cpu"
 	"runtime"
 	"strconv"
@@ -24,3 +26,15 @@ func GetCPUInfo() (interface{}, error) {
 	return cpuInfo, err
 }
 
+func Test()  {
+	cpu, err := ghw.CPU()
+	if err != nil {
+		fmt.Printf("Error getting CPU info: %v", err)
+	}
+
+	fmt.Println("%v\n", cpu)
+	for _, proc := range cpu.Processors {
+		fmt.Printf(" %v\n", proc.Cores)
+	}
+
+}

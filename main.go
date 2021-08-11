@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"troila-guest-agent/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/shirou/gopsutil/disk"
 )
 
 func execOrder(c *gin.Context) {
@@ -44,7 +42,7 @@ func getCPUInfo(c *gin.Context) {
 func getMemoryInfo(c *gin.Context) {
 	info, err := utils.GetMemory()
 	if err != nil {
-		log.Println("get cpu info error ", err)
+		log.Println("get memory info error ", err)
 	}
 	c.JSON(200, gin.H{
 		"memory": info,
@@ -53,12 +51,12 @@ func getMemoryInfo(c *gin.Context) {
 
 //获取disk
 func getDiskInfo(c *gin.Context) {
-	info, err := disk.Partitions(true)
+	info, err := utils.GetDiskInfo()
 	if err != nil {
-		log.Println("get Memory info error ", err)
+		log.Println("get disk info error ", err)
 	}
 	c.JSON(200, gin.H{
-		"message": info,
+		"disk": info,
 	})
 }
 
@@ -85,7 +83,7 @@ func getLLDPInfo(c *gin.Context) {
 }
 
 func main() {
-	fmt.Println(utils.GetDiskDrivers())
+	//utils.GetDiskInfo()
 	router := gin.Default()
 
 	router.GET("/ping", ping)
