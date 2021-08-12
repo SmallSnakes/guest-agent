@@ -1,3 +1,5 @@
+// +build windows
+
 package utils
 
 import (
@@ -5,6 +7,7 @@ import (
 	"runtime"
 	"strconv"
 )
+
 
 func GetCPUInfo() (interface{}, error) {
 
@@ -23,3 +26,5 @@ func GetCPUInfo() (interface{}, error) {
 	cpuInfo["flags"] = info[0].Flags
 	return cpuInfo, err
 }
+
+

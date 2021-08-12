@@ -67,7 +67,7 @@ func getNetInfo(c *gin.Context) {
 		log.Println("get network info error ", err)
 	}
 	c.JSON(200, gin.H{
-		"message": info,
+		"interface": info,
 	})
 }
 
@@ -83,7 +83,7 @@ func getLLDPInfo(c *gin.Context) {
 }
 
 func main() {
-	//utils.GetDiskInfo()
+	//utils.LoadCpu()
 	router := gin.Default()
 
 	router.GET("/ping", ping)
@@ -91,8 +91,7 @@ func main() {
 	router.GET("/CPUInfo", getCPUInfo)
 	router.GET("/MemoryInfo", getMemoryInfo)
 	router.GET("/DiskInfo", getDiskInfo)
-	//router.GET("/getNetInfo", getNetInfo)
-	//router.GET("/getLLDPInfo", getLLDPInfo)
+	router.GET("/NetInfo", getNetInfo)
 
 	router.Run(":1234")
 }

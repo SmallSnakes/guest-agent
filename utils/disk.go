@@ -29,12 +29,19 @@ func GetDiskInfo() (interface{}, error) {
 		if disk.Model == "unknown" {
 			continue
 		}
+		
+		var isRotational bool
+		if string(disk.DriveType.String()) == "SSD"{
+			isRotational = false
+		}else if string(disk.DriveType.String()) == "HDD" {
+			isRotational = true
+		}
+
 		diskInfo := &DiskArg{
 			Name:               disk.Name,
 			Model:              disk.Model,
 			SizeBytes:          disk.SizeBytes,
-			//不知道这个参数是干嘛的，
-			Rotational:         true,
+			Rotational:         isRotational,
 			WWN:                disk.WWN,
 			SerialNumber:       disk.SerialNumber,
 			Vendor:             disk.Vendor,
@@ -44,9 +51,7 @@ func GetDiskInfo() (interface{}, error) {
 			BusPath:            disk.BusPath,
 		}
 		diskInfos = append(diskInfos, diskInfo)
-
 	}
-
 	return diskInfos, nil
 
 }
