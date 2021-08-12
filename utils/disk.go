@@ -29,7 +29,7 @@ func GetDiskInfo() (interface{}, error) {
 		if disk.Model == "unknown" {
 			continue
 		}
-		
+
 		var isRotational bool
 		if string(disk.DriveType.String()) == "SSD"{
 			isRotational = false

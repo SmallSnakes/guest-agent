@@ -6,18 +6,20 @@ import (
 	"fmt"
 	"github.com/StackExchange/wmi"
 	"net"
+	"strings"
 )
 
-const wqlNetworkAdapter = "SELECT Index,Name, MACAddress, NetworkAddresses,  Installed, PhysicalAdapter  " +
-	"FROM Win32_NetworkAdapter"
+const wqlNetworkAdapter = "SELECT InterfaceIndex ,Name, MACAddress, NetworkAddresses, Installed, PhysicalAdapter,  " +
+	"ProductName FROM Win32_NetworkAdapter"
 
 type win32NetworkAdapter struct {
-	Index            int
+	InterfaceIndex   int
 	Name             string
 	MACAddress       string
 	NetworkAddresses string
 	Installed        bool
 	PhysicalAdapter  bool
+	ProductName		 string
 }
 
 type NetArg struct {
@@ -36,18 +38,28 @@ func GetNetInfo() ([]interface{}, error) {
 	}
 
 	var netInfos []interface{}
-
 	for _, net_interface := range nets {
 		if !net_interface.PhysicalAdapter {
 			continue
 		}
-		ipaddr := getIP(net_interface.Index)
-		print(ipaddr)
+
+		// 获取ipv4和ipv6
+		var ipv4 string
+		var ipv6 string
+		ipaddr := getIP(net_interface.InterfaceIndex)
+		for _, addr := range ipaddr {
+			if isIPv4(addr.String()) {
+				ipv4 = addr.String()
+			} else if isIPv6(addr.String()) {
+				ipv6 = addr.String()
+			}
+		}
+		fmt.Println(net_interface.ProductName)
 		var netInfo = &NetArg{
 			Name:        net_interface.Name,
 			MacAddress:  net_interface.MACAddress,
-			Ipv4Address: "",
-			Ipv6Address: "",
+			Ipv4Address: ipv4,
+			Ipv6Address: ipv6,
 			HasCarrier:  net_interface.Installed,
 			//LLDP:        []",
 		}
@@ -56,8 +68,8 @@ func GetNetInfo() ([]interface{}, error) {
 	return netInfos, err
 }
 
+// Getting info from WMI
 func load() ([]win32NetworkAdapter, error) {
-	// Getting info from WMI
 	var win32NetDescriptions []win32NetworkAdapter
 	if err := wmi.Query(wqlNetworkAdapter, &win32NetDescriptions); err != nil {
 		return nil, err
@@ -65,13 +77,23 @@ func load() ([]win32NetworkAdapter, error) {
 	return win32NetDescriptions, nil
 }
 
-func getIP(inx int) []net.Addr{
+//获取ipaddr
+func getIP(inx int) []net.Addr {
 	byIndex, err := net.InterfaceByIndex(inx)
 	if err != nil {
 		return nil
 	}
 	addresses, _ := byIndex.Addrs()
-	fmt.Println(addresses)
 
 	return addresses
+}
+
+//判断是否为ipv4
+func isIPv4(address string) bool {
+	return strings.Count(address, ":") < 2
+}
+
+//判断是否为ipv6
+func isIPv6(address string) bool {
+	return strings.Count(address, ":") >= 2
 }
