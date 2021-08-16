@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/troila-guest-agent.iml" filepath="$PROJECT_DIR$/.idea/troila-guest-agent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/guest-agent.iml" filepath="$PROJECT_DIR$/.idea/guest-agent.iml" />
     </modules>
   </component>
 </project>

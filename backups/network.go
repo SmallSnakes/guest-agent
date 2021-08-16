@@ -1,4 +1,4 @@
-package utils
+package backups
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 )
 
 //获取网络信息
-func GetNetInfo() ([]interface{}, error) {
+func getNetInfo() ([]interface{}, error) {
 	netInterfaces, err := net.Interfaces()
 	log.Println(netInterfaces)
 	if err != nil {
