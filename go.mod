@@ -19,6 +19,7 @@ require (
 	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/shirou/gopsutil v3.21.7+incompatible
+	github.com/thinkeridea/go-extend v1.3.2
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e

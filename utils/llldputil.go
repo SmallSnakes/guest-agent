@@ -1,17 +1,25 @@
 package utils
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"log"
+	"net"
 	"reflect"
 	"strings"
 	"time"
 	"unsafe"
 )
 
+type LocalNetArg struct {
+	Name        string `json:"name"`
+	MacAddress  string `json:"mac_address"`
+	Ipv4Address string `json:"ipv4_address"`
+	Ipv6Address string `json:"ipv6_address"`
+}
 
 func getAllDevice() []pcap.Interface {
 	var devices []pcap.Interface
@@ -19,42 +27,72 @@ func getAllDevice() []pcap.Interface {
 	return devices
 }
 
-func LLDPInfo() {
-
-	handle, err := pcap.OpenLive("\\Device\\NPF_{80AFA1A5-2B1C-4E31-9B85-6A4557002FD2}", int32(65535), true, -1*time.Second)
+func LLDPInfo(deviceName string) (*LLDPArg, LocalNetArg) {
+	handle, err := pcap.OpenLive(deviceName, int32(65535), true, -1*time.Second)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	defer handle.Close()
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	portIDSubtypes := map[int]string{1: "Interface Name", 2: "Local"}
 	packet := packetSource.Packets()
+
+	switchInfo := &LLDPArg{}
+	localInfo := LocalNetArg{}
 	for packet := range packet {
 		if lldpPacket, ok := packet.Layer(layers.LayerTypeLinkLayerDiscovery).(*layers.LinkLayerDiscovery); ok {
-			lldpInfo,_ := packet.Layer(layers.LayerTypeLinkLayerDiscoveryInfo).(*layers.LinkLayerDiscoveryInfo)
+			lldpInfo, _ := packet.Layer(layers.LayerTypeLinkLayerDiscoveryInfo).(*layers.LinkLayerDiscoveryInfo)
 			if lldpPacket.PortID.Subtype.String() == "Interface Name" {
-				fmt.Println("chassis",BytesTo16(lldpPacket.ChassisID.ID ))
-				fmt.Println("ttl",lldpPacket.TTL )
-				fmt.Println("PortDescription",lldpInfo.PortDescription )
-				fmt.Println("SysName",lldpInfo.SysName )
-				fmt.Println("SysDescription",lldpInfo.SysDescription )
-				fmt.Println("SysCapabilities",lldpInfo.SysCapabilities.SystemCap )
-				fmt.Println("MgmtAddress",lldpInfo.MgmtAddress.Address )
-				fmt.Println("OrgTLVs",lldpInfo.OrgTLVs )
-
+				switchInfo = interfaceSwitch(*lldpPacket, *lldpInfo)
 				delete(portIDSubtypes, 1)
 			} else if lldpPacket.PortID.Subtype.String() == "Local" {
-				//fmt.Println("macaddres",BytesTo16(got.ChassisID.ID ))
+				localInfo = local(*lldpPacket)
 				delete(portIDSubtypes, 2)
 			}
 			if len(portIDSubtypes) == 0 {
 				break
 			}
 		}
-
 	}
+	return switchInfo, localInfo
+}
 
+//解析switch信息
+func interfaceSwitch(lldpPacket layers.LinkLayerDiscovery, lldpInfo layers.LinkLayerDiscoveryInfo) *LLDPArg {
+	info := &LLDPArg{}
+	info.ChassisId = BytesTo16(lldpPacket.ChassisID.ID)
+	info.PortId = BytesToString(lldpPacket.PortID.ID)
+	info.TTL = lldpPacket.TTL
+	info.PortDescription = lldpInfo.PortDescription
+	info.SYSName = lldpInfo.SysName
+	info.SYSDescription = lldpInfo.SysDescription
+	info.SYSCapabilities = lldpInfo.SysCapabilities.SystemCap.Other
+	info.MGMTAddress = BytesTo16(lldpInfo.MgmtAddress.Address)
+	info.ORGSpecific = BytesTo16(lldpInfo.OrgTLVs[0].Info)
+	return info
+}
+
+//解析本地信息
+func local(lldpPacket layers.LinkLayerDiscovery) LocalNetArg {
+	localInfo := LocalNetArg{}
+	var ipv4 string
+	var ipv6 string
+	for _, value := range lldpPacket.Values {
+		if value.Type.String() == "Management Address" {
+			if value.Length == 12 {
+				ipv4 = (net.IP)(value.Value[2 : len(value.Value)-6]).String()
+			} else if value.Length == 24 {
+				ipv6 = (net.IP)(value.Value[2 : len(value.Value)-6]).String()
+			}
+
+		}
+	}
+	localInfo.Name = BytesToString(lldpPacket.PortID.ID)
+	localInfo.MacAddress = ParseNetNameMac(BytesTo16(lldpPacket.ChassisID.ID))
+	localInfo.Ipv4Address = ipv4
+	localInfo.Ipv6Address = ipv6
+	return localInfo
 }
 
 // BytesToString []byte 转 string
@@ -72,4 +110,13 @@ func BytesTo16(DecimalSlice []byte) string {
 	}
 	ss := strings.Join(sa, "")
 	return ss
+}
+
+// 转换标准mac
+func ParseNetNameMac(name string) string {
+	buf, err := hex.DecodeString(name)
+	if err != nil {
+		log.Println(err)
+	}
+	return net.HardwareAddr(buf).String()
 }

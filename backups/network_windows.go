@@ -4,6 +4,7 @@ package backups
 
 import (
 	"fmt"
+	"github.com/StackExchange/wmi"
 	"net"
 	"strings"
 )
