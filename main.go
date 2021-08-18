@@ -73,8 +73,6 @@ func getNetInfo(c *gin.Context) {
 
 
 func main() {
-	//utils.GetNetInfo()
-	//utils.LLDPInfo()
 	router := gin.Default()
 
 	router.GET("/ping", ping)

@@ -27,19 +27,19 @@ func getAllDevice() []pcap.Interface {
 	return devices
 }
 
-func LLDPInfo(deviceName string) (*LLDPArg, LocalNetArg) {
+func LLDPInfo(deviceName string) (LLDPArg, LocalNetArg) {
 	handle, err := pcap.OpenLive(deviceName, int32(65535), true, -1*time.Second)
+	fmt.Println(handle.ReadPacketData())
 	if err != nil {
 		log.Println(err)
 	}
 	defer handle.Close()
 
+	switchInfo := LLDPArg{}
+	localInfo := LocalNetArg{}
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	portIDSubtypes := map[int]string{1: "Interface Name", 2: "Local"}
 	packet := packetSource.Packets()
-
-	switchInfo := &LLDPArg{}
-	localInfo := LocalNetArg{}
 	for packet := range packet {
 		if lldpPacket, ok := packet.Layer(layers.LayerTypeLinkLayerDiscovery).(*layers.LinkLayerDiscovery); ok {
 			lldpInfo, _ := packet.Layer(layers.LayerTypeLinkLayerDiscoveryInfo).(*layers.LinkLayerDiscoveryInfo)
@@ -50,17 +50,21 @@ func LLDPInfo(deviceName string) (*LLDPArg, LocalNetArg) {
 				localInfo = local(*lldpPacket)
 				delete(portIDSubtypes, 2)
 			}
+
 			if len(portIDSubtypes) == 0 {
 				break
 			}
 		}
 	}
 	return switchInfo, localInfo
+
 }
 
+
+
 //解析switch信息
-func interfaceSwitch(lldpPacket layers.LinkLayerDiscovery, lldpInfo layers.LinkLayerDiscoveryInfo) *LLDPArg {
-	info := &LLDPArg{}
+func interfaceSwitch(lldpPacket layers.LinkLayerDiscovery, lldpInfo layers.LinkLayerDiscoveryInfo) LLDPArg {
+	info := LLDPArg{}
 	info.ChassisId = BytesTo16(lldpPacket.ChassisID.ID)
 	info.PortId = BytesToString(lldpPacket.PortID.ID)
 	info.TTL = lldpPacket.TTL

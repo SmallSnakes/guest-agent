@@ -5,7 +5,6 @@ package utils
 import (
 	"fmt"
 	"github.com/StackExchange/wmi"
-	"strings"
 )
 
 type win32NetworkAdapter struct {
@@ -51,18 +50,19 @@ func GetNetInfo() ([]interface{}, error) {
 	for _, adapter := range phyNic {
 		var netInfo NetArg
 		for _, device := range getAllDevice() {
-			if strings.Contains(device.Name, adapter.GUID) {
+			//if strings.Contains(device.Name, adapter.GUID) {
+			fmt.Println(device.Name)
 				switchInfo, localInfo := LLDPInfo(device.Name)
 				netInfo.Name = localInfo.Name
 				netInfo.MacAddress = localInfo.MacAddress
 				netInfo.Ipv4Address = localInfo.Ipv4Address
 				netInfo.Ipv6Address = localInfo.Ipv6Address
 				netInfo.HasCarrier = adapter.Installed
-				netInfo.LLDP = *switchInfo
+				netInfo.LLDP = switchInfo
 				netInfo.Vendor = adapter.Manufacturer
 				netInfo.Product = adapter.ProductName
 
-			}
+			//}
 		}
 		netInfos = append(netInfos, netInfo)
 	}
@@ -82,7 +82,7 @@ func IsPhysicalNet() ([]win32NetworkAdapter, error) {
 		if description.PhysicalAdapter == false {
 			continue
 		}
-		fmt.Println(description)
+		//fmt.Println(description)
 		PhysicalNet = append(PhysicalNet, description)
 	}
 	return PhysicalNet, nil
