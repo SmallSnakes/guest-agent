@@ -5,6 +5,7 @@ package utils
 import (
 	"fmt"
 	"github.com/StackExchange/wmi"
+	"strings"
 )
 
 type win32NetworkAdapter struct {
@@ -50,7 +51,7 @@ func GetNetInfo() ([]interface{}, error) {
 	for _, adapter := range phyNic {
 		var netInfo NetArg
 		for _, device := range getAllDevice() {
-			//if strings.Contains(device.Name, adapter.GUID) {
+			if strings.Contains(device.Name, adapter.GUID) {
 			fmt.Println(device.Name)
 				switchInfo, localInfo := LLDPInfo(device.Name)
 				netInfo.Name = localInfo.Name
@@ -62,7 +63,7 @@ func GetNetInfo() ([]interface{}, error) {
 				netInfo.Vendor = adapter.Manufacturer
 				netInfo.Product = adapter.ProductName
 
-			//}
+			}
 		}
 		netInfos = append(netInfos, netInfo)
 	}

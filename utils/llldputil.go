@@ -60,8 +60,6 @@ func LLDPInfo(deviceName string) (LLDPArg, LocalNetArg) {
 
 }
 
-
-
 //解析switch信息
 func interfaceSwitch(lldpPacket layers.LinkLayerDiscovery, lldpInfo layers.LinkLayerDiscoveryInfo) LLDPArg {
 	info := LLDPArg{}
@@ -72,7 +70,7 @@ func interfaceSwitch(lldpPacket layers.LinkLayerDiscovery, lldpInfo layers.LinkL
 	info.SYSName = lldpInfo.SysName
 	info.SYSDescription = lldpInfo.SysDescription
 	info.SYSCapabilities = lldpInfo.SysCapabilities.SystemCap.Other
-	info.MGMTAddress = BytesTo16(lldpInfo.MgmtAddress.Address)
+	info.MGMTAddress = (net.IP)(lldpInfo.MgmtAddress.Address).String()
 	info.ORGSpecific = BytesTo16(lldpInfo.OrgTLVs[0].Info)
 	return info
 }
